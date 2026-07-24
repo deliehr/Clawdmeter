@@ -214,7 +214,7 @@ static lv_obj_t* panel_weekly = nullptr;
 static lv_obj_t* lbl_session_pct_sym = nullptr;  // "%" in smaller font
 static lv_obj_t* lbl_spending_desc = nullptr;     // "of your monthly budget"
 static lv_obj_t* lbl_spending_status = nullptr;   // "Under pace" / "On pace" / "Over pace"
-static lv_obj_t* lbl_anim;      // status line: connection state + whimsical idle
+static lv_obj_t* lbl_anim;      // status line: connection state + idle
 
 // ---- Battery indicator (shared, on top) ----
 static lv_obj_t* battery_img;
@@ -255,41 +255,6 @@ static const char* const spinner_frames[] = {
 static const uint16_t spinner_ms[SPINNER_COUNT] = {
     260, 130, 130, 130, 130, 260,
 };
-
-static const char* const anim_messages[] = {
-    "Accomplishing", "Elucidating", "Perusing",
-    "Actioning", "Enchanting", "Philosophising",
-    "Actualizing", "Envisioning", "Pondering",
-    "Baking", "Finagling", "Pontificating",
-    "Booping", "Flibbertigibbeting", "Processing",
-    "Brewing", "Forging", "Puttering",
-    "Calculating", "Forming", "Puzzling",
-    "Cerebrating", "Frolicking", "Reticulating",
-    "Channelling", "Generating", "Ruminating",
-    "Churning", "Germinating", "Scheming",
-    "Clauding", "Hatching", "Schlepping",
-    "Coalescing", "Herding", "Shimmying",
-    "Cogitating", "Honking", "Shucking",
-    "Combobulating", "Hustling", "Simmering",
-    "Computing", "Ideating", "Smooshing",
-    "Concocting", "Imagining", "Spelunking",
-    "Conjuring", "Incubating", "Spinning",
-    "Considering", "Inferring", "Stewing",
-    "Contemplating", "Jiving", "Sussing",
-    "Cooking", "Manifesting", "Synthesizing",
-    "Crafting", "Marinating", "Thinking",
-    "Creating", "Meandering", "Tinkering",
-    "Crunching", "Moseying", "Transmuting",
-    "Deciphering", "Mulling", "Unfurling",
-    "Deliberating", "Mustering", "Unravelling",
-    "Determining", "Musing", "Vibing",
-    "Discombobulating", "Noodling", "Wandering",
-    "Divining", "Percolating", "Whirring",
-    "Doing", "Wibbling",
-    "Effecting", "Wizarding",
-    "Working", "Wrangling",
-};
-#define ANIM_MSG_COUNT (sizeof(anim_messages) / sizeof(anim_messages[0]))
 
 static lv_color_t pct_color(float pct) {
     if (pct >= 80.0f) return COL_RED;
@@ -708,7 +673,7 @@ void ui_tick_anim(void) {
     }
 
     if (now - anim_msg_start >= ANIM_MSG_MS) {
-        anim_msg_idx = (anim_msg_idx + 1) % ANIM_MSG_COUNT;
+        anim_msg_idx ^= 1;
         anim_msg_start = now;
     }
 
@@ -718,7 +683,7 @@ void ui_tick_anim(void) {
     anim_spinner_idx = (anim_phase < SPINNER_COUNT) ? anim_phase
                                                     : (SPINNER_PHASES - anim_phase);
 
-    // Status text by priority. Whimsical messages only when connected & settled.
+    // Status text by priority. Blank once connected & settled — nothing useful to say.
     const char* text;
     if (!s_ble_connected) {
         text = "Waiting";              // advertising / waiting for a host connection
@@ -727,14 +692,17 @@ void ui_tick_anim(void) {
     } else if (now - connected_at_ms < 5000) {
         text = "Connected";
     } else {
-        text = anim_messages[anim_msg_idx];
+        text = nullptr;
     }
 
-    // All states share the whimsical style: "<glyph> <Title-case word>…"
     static char buf[80];
-    snprintf(buf, sizeof(buf), "%s %s\xE2\x80\xA6",
-             spinner_frames[anim_spinner_idx], text);
-    lv_label_set_text(lbl_anim, buf);
+    if (text) {
+        snprintf(buf, sizeof(buf), "%s %s\xE2\x80\xA6",
+                 spinner_frames[anim_spinner_idx], text);
+        lv_label_set_text(lbl_anim, buf);
+    } else {
+        lv_label_set_text(lbl_anim, "");
+    }
 }
 
 static screen_t prev_non_splash_screen = SCREEN_USAGE;

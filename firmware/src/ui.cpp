@@ -265,12 +265,34 @@ static lv_color_t pct_color(float pct) {
 static void format_reset_time(int mins, char* buf, size_t len) {
     if (mins < 0) {
         snprintf(buf, len, "---");
-    } else if (mins < 60) {
-        snprintf(buf, len, "Resets in %dm", mins);
+        return;
+    }
+
+    char rel[24];
+    if (mins < 60) {
+        snprintf(rel, sizeof(rel), "Resets in %dm", mins);
     } else if (mins < 1440) {
-        snprintf(buf, len, "Resets in %dh %dm", mins / 60, mins % 60);
+        snprintf(rel, sizeof(rel), "Resets in %dh %dm", mins / 60, mins % 60);
     } else {
-        snprintf(buf, len, "Resets in %dd %dh", mins / 1440, (mins % 1440) / 60);
+        snprintf(rel, sizeof(rel), "Resets in %dd %dh", mins / 1440, (mins % 1440) / 60);
+    }
+
+    // Daemon-supplied wall clock lets us append the actual reset time, e.g. "Resets in 4h 27m / 23:45".
+    if (clock_base_epoch > 0) {
+        time_t reset_epoch = (time_t)(clock_base_epoch + (long)mins * 60);
+        struct tm tmv;
+        gmtime_r(&reset_epoch, &tmv);   // epoch is already local wall-clock → gmtime keeps it as-is
+        char clk[12];
+        if (clock_fmt == 12) {
+            int h12 = tmv.tm_hour % 12;
+            if (h12 == 0) h12 = 12;
+            snprintf(clk, sizeof(clk), "%d:%02d %s", h12, tmv.tm_min, tmv.tm_hour < 12 ? "AM" : "PM");
+        } else {
+            snprintf(clk, sizeof(clk), "%02d:%02d", tmv.tm_hour, tmv.tm_min);
+        }
+        snprintf(buf, len, "%s / %s", rel, clk);
+    } else {
+        snprintf(buf, len, "%s", rel);
     }
 }
 

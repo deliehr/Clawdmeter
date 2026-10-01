@@ -212,10 +212,9 @@ stage** (`SPLASH_GRID`, cell = min(W,H)/60 → 8 px on 480, 6 px on 368, 4 px on
 240): loops hold until released (walk arrival, scene timer, rotation), so
 switches always pass through the shared idle pose. Walkers translate with
 foot-locked per-frame schedules and mirror when heading left. Usage-rate
-groups pick animations by name; the same rate drives the **corner mascot** on
-the usage screen (`splash_mascot_*`, PSRAM boards; C6 falls back to the static
-`clawd_still.h` icon) — idle stills, rate-scaled acts, and walk-off/lurk/
-walk-back trips. Default boot screen.
+groups pick animations by name. The usage screen's corner shows the static
+`clawd_still.h` icon on every board (the animated corner mascot was removed).
+Default boot screen.
 
 **Where the animations come from / finding new ones:** all assets are plain
 files under `https://claude.ai/images/clawd/{core,persona}/…` — static assets

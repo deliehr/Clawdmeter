@@ -69,6 +69,10 @@ struct Layout {
     const lv_font_t* status_font;
     int16_t status_y;                // bottom edge offset from the panel's bottom (<= 0)
     int16_t status_w;                // widest it may draw; longer verbs are skipped
+    // While the status line is blank (No-nonsense, settled) the cards sit
+    // this much lower, centred between the header and the bottom edge. 0 on
+    // round glass, where they're centred already.
+    int16_t quiet_dy;
 
     // Pairing hint: four centred lines (heading, two steps, note), each
     // line_y below pair_y. Where a step is wider than pair_w the lines wrap

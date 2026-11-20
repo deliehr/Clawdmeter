@@ -41,6 +41,8 @@ struct ClawdTuning {
     uint16_t idle_gap_pct;       // the corner's still time between acts, % of the mood's base
     uint32_t verb_ms;            // the status line's thinking verb changes this often
     bool     spinner;            // the status line's spinner turns
+    bool     verbs;              // settled, the status line cycles verbs; off: it's blank
+                                 // and the cards slide into its room (Layout.quiet_dy)
 };
 
 // The effective tuning: the base (defaults, or the sim's fast set) scaled
@@ -54,9 +56,9 @@ void         clawd_tuning_fast(ClawdTuning* t);   // sim walkthrough timings
 // How lively Clawd is, 1 to 5 (the app's slider: 1 No-nonsense, 3
 // Some-nonsense, 5 All-nonsense; payload `lv`, kept in NVS).
 //   1  sits still in his corner: no shows, screensaver, idle acts or
-//      reactions; the status verb changes once a minute and the spinner
-//      holds still. Taps (the peek) and alerts (the attention walk-on) are
-//      unchanged.
+//      reactions; no status verbs: settled, the line is blank and the
+//      cards slide into its room. Taps (the peek) and alerts (the
+//      attention walk-on) are unchanged.
 //   3  the base timings as they are.
 //   5  shows earned by a shorter, lighter stretch (activity 2 counts) with
 //      shorter cooldowns, calm dips and idle acts far more often, the wave

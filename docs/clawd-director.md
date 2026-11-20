@@ -72,7 +72,11 @@ Continuity rules, as the code enforces them:
 - The normal status line rotates Claude Code's whimsical thinking verbs as
   the all-is-well indicator. This is the owner's chosen behavior, not an
   activity report. Keep the spinner and ellipsis. Disconnected is "Waiting";
-  minimal mode uses fixed status text instead of rotating verbs.
+  minimal mode uses fixed status text instead of rotating verbs. At
+  No-nonsense there are no verbs: once settled the line is blank and the
+  cards slide down into its room (`Layout.quiet_dy`, centred between the
+  header and the bottom edge; not on round glass), and slide back up before
+  a state word or an alert shows.
 - Stale data keeps the one-Clawd rule. When the link is up but no fresh usage
   has landed for `DATA_FRESH_MS` (90 s), or the daemon sent `{"ok":false}`,
   the meters stay where they are at 40 % opacity (LVGL `opa`, which scales the
@@ -397,7 +401,7 @@ change at once (a show or screensaver the new level rules out goes home).
 
 | Level | What changes |
 |---|---|
-| 1 No-nonsense | No shows, screensaver, idle acts or lurk trips, and no reactions (noticing, long-turn wave, fresh-window joy). The status line's verb changes once a minute and the spinner holds still, so with no taps or alerts only the clock and that word redraw. A tap still gets the peek, an alert still gets the attention walk-on. |
+| 1 No-nonsense | No shows, screensaver, idle acts or lurk trips, and no reactions (noticing, long-turn wave, fresh-window joy). The status line shows no verbs: settled, it's blank and the cards slide down into its room, so with no taps or alerts only the clock redraws. A tap still gets the peek, an alert still gets the attention walk-on. |
 | 2 | Rate-like timings ÷ 0.6: show after ~8.3 min, cooldown 25 min, calm dips every 5–8.3 min, corner still time ×1.67, wave after a 3.3-min turn. |
 | 3 Some-nonsense | The base timings above. |
 | 4 | ÷ 1.8: show after ~2.8 min, cooldown ~8.3 min, calm dips every ~1.7–2.8 min, still time ×0.56, wave after ~67 s. |

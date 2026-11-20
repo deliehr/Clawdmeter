@@ -567,6 +567,15 @@ static void fit_resets(Layout& L) {
     L.resets_rows = 1;
 }
 
+// With the status line blank, the cards centre between the header and the
+// bottom edge.
+static void fit_quiet(Layout& L) {
+    const int16_t header = L.logo_y + logo_slot(L);
+    const int16_t above = L.card[0].y > header ? L.card[0].y - header : 0;
+    const int16_t below = L.h - stack_bottom(L);
+    L.quiet_dy = below > above ? (below - above) / 2 : 0;
+}
+
 Layout layout_compute(const LayoutShape& shape) {
     Layout L = {};
     L.w = shape.w;
@@ -596,6 +605,7 @@ Layout layout_compute(const LayoutShape& shape) {
     fit_pairing(L, *d);
     fit_period(L);
     fit_resets(L);
+    if (!shape.round) fit_quiet(L);
     return L;
 }
 

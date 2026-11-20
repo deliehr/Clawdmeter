@@ -305,6 +305,7 @@ static void test_no_nonsense_keeps_him_still_but_taps_and_alerts_work(void) {
     TEST_ASSERT_FALSE(out.idle_acts);
     TEST_ASSERT_FALSE(out.reactions);
     TEST_ASSERT_FALSE(out.spinner);
+    TEST_ASSERT_FALSE(out.verbs);
     TEST_ASSERT_EQUAL_UINT32(60 * SEC, out.verb_ms);
     // The peek and attention keep their timings.
     TEST_ASSERT_EQUAL_UINT32(T.peek_curious_ms, out.peek_curious_ms);
@@ -342,7 +343,8 @@ static void test_levels_in_between_interpolate(void) {
         TEST_ASSERT_TRUE(l[i].calm_min_ms > l[i + 1].calm_min_ms);
         TEST_ASSERT_TRUE(l[i].idle_gap_pct > l[i + 1].idle_gap_pct);
         TEST_ASSERT_TRUE(l[i].long_turn_ms > l[i + 1].long_turn_ms);
-        TEST_ASSERT_TRUE(l[i].shows && l[i].screensaver && l[i].idle_acts && l[i].reactions && l[i].spinner);
+        TEST_ASSERT_TRUE(l[i].shows && l[i].screensaver && l[i].idle_acts && l[i].reactions && l[i].spinner
+                         && l[i].verbs);
     }
     TEST_ASSERT_TRUE(l[2].calm_min_ms <= l[2].calm_max_ms);
     TEST_ASSERT_EQUAL_UINT8(3, l[4].show_min_activity);

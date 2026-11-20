@@ -33,6 +33,7 @@ void clawd_tuning_defaults(ClawdTuning* t) {
     t->idle_gap_pct      = 100;
     t->verb_ms           = 4 * SEC;
     t->spinner           = true;
+    t->verbs             = true;
 }
 
 void clawd_tuning_fast(ClawdTuning* t) {
@@ -72,6 +73,7 @@ void clawd_tuning_scaled(const ClawdTuning* base, int level, ClawdTuning* out) {
         out->reactions = false;
         out->verb_ms = 60 * SEC;
         out->spinner = false;
+        out->verbs = false;
         return;
     }
     const uint16_t r = LIVELY_RATE[level];

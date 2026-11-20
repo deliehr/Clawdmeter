@@ -138,6 +138,15 @@ static void check_panel(const Panel& p) {
     }
     check_apart("cards", card(0), card(1));
 
+    // Slid into the blank status line's room: still on the glass.
+    if (p.round && L.quiet_dy) fail("round glass slides its cards", card(0));
+    for (int i = 0; i < 2; i++) {
+        Box b = card(i);
+        b.y += L.quiet_dy;
+        check_on_glass("quiet card", b, 8);
+        if (b.y + b.h > p.h) fail("quiet card under the bottom edge", b);
+    }
+
     // The first card alone (acct "week"), where ui.cpp draws it: centred on
     // the space both take, clear of the header.
     const Box lone = { layout_lone_card_x(L), layout_lone_card_y(L), L.card[0].w, L.card[0].h };

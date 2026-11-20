@@ -680,6 +680,32 @@ static void init_usage_screen(lv_obj_t* scr) {
 // ---- Attention message on the status line (the director sequences the rest).
 static bool alert_active = false;
 static const char* still_shown = nullptr;   // minimal mode: status word on screen
+static bool status_blank = false;           // the line is empty (no verbs, settled)
+
+// ---- The cards slide into the blank status line's room (L.quiet_dy) and
+// back out before it shows anything: the line stays hidden until they're up.
+static int16_t cards_dy = 0;   // where the cards are headed
+#define CARDS_SLIDE_MS 300
+
+static void set_group_y(void* obj, int32_t y) { lv_obj_set_y((lv_obj_t*)obj, y); }
+
+static void show_status_line(lv_anim_t*) { lv_obj_clear_flag(lbl_anim, LV_OBJ_FLAG_HIDDEN); }
+
+static void slide_cards(bool quiet) {
+    const int16_t dy = quiet ? L.quiet_dy : 0;
+    if (dy == cards_dy || !usage_group) return;
+    cards_dy = dy;
+    if (!quiet) lv_obj_add_flag(lbl_anim, LV_OBJ_FLAG_HIDDEN);
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, usage_group);
+    lv_anim_set_exec_cb(&a, set_group_y);
+    lv_anim_set_values(&a, lv_obj_get_y(usage_group), dy);
+    lv_anim_set_duration(&a, CARDS_SLIDE_MS);
+    lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
+    lv_anim_set_completed_cb(&a, show_status_line);
+    lv_anim_start(&a);   // replaces a slide still running; the last one to finish shows the line
+}
 
 // ======== Public API ========
 
@@ -1112,6 +1138,7 @@ void ui_tick_anim(void) {
     if (alert_active) return;          // the status line holds the alert message
 
     if (still) {
+        slide_cards(false);
         // One glyph, one word per state; redrawn only when it changes.
         const char* text = !s_ble_connected ? "Waiting"
                          : view_state == 1 ? (data_received ? "Stale" : "No data") : "Connected";
@@ -1145,7 +1172,8 @@ void ui_tick_anim(void) {
         anim_spinner_idx = 1;
     }
 
-    // Status text by priority. Whimsical messages only when connected & settled.
+    // Status text by priority. Whimsical messages only when connected & settled,
+    // and not at all without verbs: the line goes blank and the cards slide down.
     const char* text;
     if (!s_ble_connected) {
         text = "Waiting";              // advertising / waiting for a host connection
@@ -1155,9 +1183,22 @@ void ui_tick_anim(void) {
         text = (board_caps().mono_panel || (anim_msg_idx & 1)) ? stale : "Listening";
     } else if (now - connected_at_ms < 5000) {
         text = "Connected";
-    } else {
+    } else if (tune.verbs) {
         text = anim_messages[anim_verb_idx];
+    } else {
+        text = nullptr;
     }
+
+    slide_cards(!text);
+    if (!text) {
+        if (!status_blank) {
+            lv_label_set_text(lbl_anim, "");
+            status_blank = true;
+            frozen_shown = nullptr;    // the next word redraws, even the one shown before
+        }
+        return;
+    }
+    status_blank = false;
 
     if (!tune.spinner) {
         if (text == frozen_shown) return;
@@ -1210,6 +1251,7 @@ void ui_update_battery(int percent, bool charging, bool usb_power) {
 void ui_set_alert_text(const char* message) {
     if (message && message[0]) {
         alert_active = true;
+        slide_cards(false);
         // Minimal mode: nothing moves, so a long message is cut, not scrolled.
         lv_label_set_long_mode(lbl_anim, minimal_mode() ? LV_LABEL_LONG_DOT
                                                         : LV_LABEL_LONG_SCROLL_CIRCULAR);
@@ -1225,4 +1267,5 @@ void ui_set_alert_text(const char* message) {
     anim_last_ms = 0;          // whimsical line redraws on the next tick
     still_shown = nullptr;
     frozen_shown = nullptr;
+    status_blank = false;
 }

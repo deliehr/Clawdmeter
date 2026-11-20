@@ -92,6 +92,7 @@ static NimBLECharacteristic* req_char = nullptr;
 
 static ble_state_t state = BLE_STATE_INIT;
 static bool need_advertise = false;
+static volatile bool radio_on = true;   // false in standby (ble_set_radio)
 
 // One-shot supervision-timeout pushback (see onConnParamsUpdate). Written by
 // NimBLE host-task callbacks, consumed by ble_tick() on the loop task.
@@ -265,6 +266,11 @@ static bool kbd_retry_due = false, consumer_retry_due = false;
 
 class ServerCallbacks : public NimBLEServerCallbacks {
     void onConnect(NimBLEServer* s, NimBLEConnInfo& info) override {
+        // A host that got in while standby was stopping advertising.
+        if (!radio_on) {
+            s->disconnect(info.getConnHandle());
+            return;
+        }
         state = BLE_STATE_CONNECTED;
         Serial.printf("BLE: connected from %s (active=%u)\n",
             info.getAddress().toString().c_str(),
@@ -516,7 +522,7 @@ void ble_init(void) {
 }
 
 void ble_tick(void) {
-    if (need_advertise) {
+    if (need_advertise && radio_on) {
         need_advertise = false;
         start_advertising();
     }
@@ -602,6 +608,20 @@ void ble_disconnect_all(void) {
         handles[n++] = server->getPeerInfo(i).getConnHandle();
     }
     for (uint8_t i = 0; i < n; i++) server->disconnect(handles[i]);
+}
+
+void ble_set_radio(bool on) {
+    if (on == radio_on) return;
+    radio_on = on;
+    Serial.printf("BLE: radio %s (standby)\n", on ? "on" : "off");
+    if (on) {
+        need_advertise = true;
+        return;
+    }
+    NimBLEDevice::stopAdvertising();
+    ble_disconnect_all();
+    // Each disconnect asks to advertise again; that waits for the radio.
+    need_advertise = true;
 }
 
 bool ble_has_data(void) {

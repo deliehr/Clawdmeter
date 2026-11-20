@@ -7,7 +7,7 @@ description: Flashes firmware to a connected Clawdmeter board over USB and talks
 
 Only flash when a board is attached and the user asked for it: an upload
 replaces whatever the board runs. Serial commands are safe to use for QA
-without asking, except `unpair` and `disconnect`, which drop the user's
+without asking, except `unpair`, `disconnect` and `standby`, which drop the user's
 pairing or link.
 
 ## Flash
@@ -51,6 +51,8 @@ and fails with a clear message when no board or several are attached. If
 | `chime <gain> [volume]` | Tune the speaker until reboot: gain 0..1, ES8311 volume 0..100. The 2.16 ships 0.7 / 77 (tuned by ear); the 1.8, LCD-1.54 and C6 2.16 ship 0.7 / 75 (not tuned by ear); the M5StickS3 ships 0.7 / 65 |
 | `unpair` | Clear bonds and re-advertise; replies `{"unpair":true}` |
 | `disconnect` | Drop every BLE link |
+| `standby` | The Standby button action: screen and BLE off until a press or a touch |
+| `wake` | Wake the screen as a button press would (ends standby) |
 | `screenshot` | Binary framebuffer dump; use the `capturing-device-screenshots` skill for a PNG |
 
 The authoritative list is the command parser in `firmware/src/main.cpp`

@@ -207,6 +207,8 @@ static void check_serial_cmd() {
             else if (strcmp(cmd_buf, "perf") == 0)  perf_print();
             else if (strcmp(cmd_buf, "ble") == 0) ble_print_status();
             else if (strcmp(cmd_buf, "disconnect") == 0) ble_disconnect_all();
+            else if (strcmp(cmd_buf, "standby") == 0) idle_standby();
+            else if (strcmp(cmd_buf, "wake") == 0) (void)idle_consume_wake_press();
             else if (strcmp(cmd_buf, "unpair") == 0) {
                 clear_pairing("serial");
                 Serial.println("{\"unpair\":true}");
@@ -320,6 +322,35 @@ void setup() {
 }
 
 static ble_state_t last_ble_state = BLE_STATE_INIT;
+
+// Standby (idle_standby) takes Bluetooth down with the panel and brings it
+// back on wake. A board that was connected keeps its meters through standby
+// and the reconnect after it (they dim once the numbers age), rather than
+// flashing the pairing hint; past the grace a missing host shows as usual.
+#define STANDBY_RECONNECT_GRACE_MS 20000UL
+static bool     radio_off = false;
+static bool     standby_masks_link = false;
+static uint32_t standby_grace_until_ms = 0;
+
+static void standby_tick(void) {
+    if (idle_in_standby() == radio_off) return;
+    radio_off = !radio_off;
+    if (radio_off) standby_masks_link = ble_get_state() == BLE_STATE_CONNECTED;
+    else           standby_grace_until_ms = millis() + STANDBY_RECONNECT_GRACE_MS;
+    ble_set_radio(!radio_off);
+}
+
+static ble_state_t shown_ble_state(void) {
+    const ble_state_t bs = ble_get_state();
+    if (bs == BLE_STATE_CONNECTED) {
+        if (!radio_off) standby_masks_link = false;
+        return bs;
+    }
+    if (standby_masks_link && (radio_off || (int32_t)(millis() - standby_grace_until_ms) < 0))
+        return BLE_STATE_CONNECTED;
+    standby_masks_link = false;
+    return bs;
+}
 static int shown_group = 0;   // mood group last logged
 
 // Hold-to-pair gesture: hold the PWR button ~3s, then RELEASE → clear all BLE
@@ -438,6 +469,9 @@ static void button_run_press(ButtonSlot slot, ButtonRun* r, int32_t action, bool
     case BTN_KIND_BRIGHTNESS:
         brightness_cycle();
         break;
+    case BTN_KIND_STANDBY:
+        idle_standby();
+        break;
     default:
         break;
     }
@@ -463,6 +497,7 @@ static void button_run_release(ButtonSlot slot, ButtonRun* r) {
 
 void loop() {
     idle_tick();
+    standby_tick();
     lv_timer_handler();
     ui_tick_anim();
     ble_tick();
@@ -555,7 +590,7 @@ void loop() {
         touch_pair_tick();
     }
 
-    ble_state_t bs = ble_get_state();
+    ble_state_t bs = shown_ble_state();
     if (bs != last_ble_state) {
         last_ble_state = bs;
         ui_update_ble_status(bs, ble_get_device_name(), ble_get_mac_address());

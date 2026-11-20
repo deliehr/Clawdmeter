@@ -111,8 +111,25 @@ void sim_ble_push(const char* json) {
 
 void sim_ble_set_link(bool c) { connected = c; }
 
+// Standby's radio switch. The host takes a few seconds to come back, as a
+// real one does once the board advertises again.
+#define SIM_RECONNECT_MS 3000
+static bool     radio = true;
+static uint32_t radio_up_ms = 0;
+
+static bool link_up(void) {
+    return connected && radio && (int32_t)(millis() - radio_up_ms) >= 0;
+}
+
+void ble_set_radio(bool on) {
+    if (on == radio) return;
+    radio = on;
+    if (on) radio_up_ms = millis() + SIM_RECONNECT_MS;
+    printf("[sim] radio %s (standby)\n", on ? "on" : "off");
+}
+
 void ble_tick(void) {
-    if (!connected || pending || !playing || n_states == 0) return;
+    if (!link_up() || pending || !playing || n_states == 0) return;
     if (millis() - delivered_ms >= states[cur].hold_ms) {
         cur = (cur + 1) % n_states;
         pending = true;
@@ -121,7 +138,7 @@ void ble_tick(void) {
 }
 
 ble_state_t ble_get_state(void) {
-    return connected ? BLE_STATE_CONNECTED : BLE_STATE_DISCONNECTED;
+    return link_up() ? BLE_STATE_CONNECTED : BLE_STATE_DISCONNECTED;
 }
 const char* ble_get_device_name(void) { return "Clawdmeter (sim)"; }
 const char* ble_get_mac_address(void) { return "00:51:4D:00:00:01"; }
@@ -130,7 +147,7 @@ void ble_clear_bonds(void) { printf("[sim] pair gesture completed — bonds clea
 void ble_print_status(void) { printf("BLE status: state=%s (sim)\n", connected ? "CONNECTED" : "ADVERTISING"); }
 void ble_disconnect_all(void) { printf("[sim] disconnect\n"); }
 
-bool ble_has_data(void) { return connected && (pending || inject_n > 0); }
+bool ble_has_data(void) { return link_up() && (pending || inject_n > 0); }
 const char* ble_get_data(void) {
     static char out[MAX_LINE];
     if (inject_n > 0) {

@@ -37,6 +37,7 @@ ButtonBinding button_action_decode(int32_t v) {
         case BTN_ACT_ENTER:      return key(0x28, 0x00, false);
         case BTN_ACT_ESCAPE:     return key(0x29, 0x00, false);
         case BTN_ACT_BRIGHTNESS: b.kind = BTN_KIND_BRIGHTNESS; return b;
+        case BTN_ACT_STANDBY:    b.kind = BTN_KIND_STANDBY; return b;
         default: break;
     }
     if (v & BTN_ACT_KEY_FLAG) {

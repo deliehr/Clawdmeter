@@ -276,8 +276,11 @@ Click one to change it:
 - **Media**: Play/Pause, Previous, Next, Volume down, Volume up or Mute.
   Volume repeats while you hold the button.
 - **Other**: **Brightness** cycles the screen brightness, so a board without
-  a PWR button can have one; **Nothing** leaves the button to wake the
-  screen.
+  a PWR button can have one; **Standby** turns the screen and Bluetooth off
+  (on USB power too) until the next press of any button or a tap, which turns
+  both back on; the computer then reconnects by itself within a few
+  seconds, and the meters stay up meanwhile. **Nothing** leaves the button to
+  wake the screen.
 - **Shortcut**: a keyboard shortcut of your own. Click the shortcut field
   (or Record) and press the keys, such as Ctrl+Shift+M or Cmd+Shift+M for
   Teams mute, Alt+A for Zoom, or Win+Alt+K for the Windows 11 microphone.

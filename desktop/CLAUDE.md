@@ -146,7 +146,7 @@ is faked behind `FlashHardware`.
   percentages as the status item's title, `tray::menu_bar_title`), `button_primary`
   (default `space`), `button_secondary` (default `shift-tab`) and
   `button_pwr` (default `brightness`): `none`, `space`, `shift-tab`, `tab`,
-  `enter`, `escape`, `brightness`, a media key (`play-pause`,
+  `enter`, `escape`, `brightness`, `standby`, a media key (`play-pause`,
   `previous-track`, `next-track`, `volume-down`, `volume-up`, `mute`) or a
   shortcut, modifiers and a key joined by `+` with an optional `hold`
   (`ctrl+shift+m`, `super+alt+k`, `ctrl+space hold`; `tap` marks one

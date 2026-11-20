@@ -11,6 +11,12 @@ void idle_note_activity(void);
 // picked up by the next fade-in. See brightness.{h,cpp}.
 void idle_set_awake_brightness(uint8_t level);
 
+// Standby (a button's Standby action): fade the panel out now and keep it
+// dark, on USB power too, until a press or a touch wakes it.
+// main.cpp takes Bluetooth down with it.
+void idle_standby(void);
+bool idle_in_standby(void);
+
 // Returns true if this press was consumed as a wake-up (caller MUST skip the
 // button's normal action). Returns false when already awake — also notes the
 // activity, so callers don't need a separate idle_note_activity() call.
